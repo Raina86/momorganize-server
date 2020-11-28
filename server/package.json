@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +21,6 @@
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "save-dev": "0.0.1-security",
-    "sequelize": "^6.3.5"
+    "sequelize": "^5.21.8"
   }
 }

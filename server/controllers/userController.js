@@ -1,5 +1,5 @@
-const { UserModel } = require("../models/users");
 const sequelize = require("../db");
+const { UserModel } = sequelize.import("../models/users");
 const { Router } = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
