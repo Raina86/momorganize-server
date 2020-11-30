@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const { UserModel } = require("../models/users");
+const sequelize = require("../db");
+const { UserModel } = sequelize.import("../models/users");
 
 const validate = (req, res, next) => {
   if (req.method === "OPTIONS") {
@@ -16,7 +17,7 @@ const validate = (req, res, next) => {
           UserModel.findOne({ where: { id: decoded.id } }).then(
             (user) => {
               req.user = user;
-              // console.log(req.user);
+              console.log(req.user);
               next();
             },
             (err) => {
