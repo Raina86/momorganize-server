@@ -1,10 +1,10 @@
 const sequelize = require("../db");
-const UserModel  = require("../models/user");
+const UserModel = sequelize.import("../models/users");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-
+const { v4: uuidv4 } = require('uuid');
 
 const userController = express.Router();
 
@@ -13,22 +13,34 @@ const userController = express.Router();
  **************************/
 
 userController.post("/register", async (req, res) => {
+
+  let userResponse = await UserModel.findOne({
+    where: { email: req.body.email }
+  });
+  if (userResponse) {
+    return res.status(400).json({
+      message: `This email is already registered`,
+    })
+  }
   UserModel.create({
-    username: req.body.user.username,
-    passwordhash: bcrypt.hashSync(req.body.user.password, 10),
+    id: uuidv4(),
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    passwordhash: bcrypt.hashSync(req.body.password, 10),
   }).then((data) => {
     const token = jwt.sign({ id: data.id }, process.env.JWT_SECRET);
-    res
-      .status(201)
-      .json({
-        message: "Success: Account created!",
-        token: token,
-      })
-      
-  }).catch((err) => 
-  res.status(500).json({
-    message: `Error Logging In: ${err}`,
-  }));
+    res.status(201).json({
+      message: "Success: Account created!",
+      token: token,
+    });
+  }).catch((err) => {
+    console.log(err);
+    res.status(500).json({
+      message: `Error Logging In: ${err}`,
+    })
+  }
+  );
 });
 
 /************************
@@ -36,36 +48,31 @@ userController.post("/register", async (req, res) => {
  ************************/
 
 userController.post("/login", async (req, res) => {
-  console.log(req)
+  console.log(req);
   // try {
-    let loginUser = await UserModel.findOne({
-      where: {username: req.body.user.username },
+  let loginUser = await UserModel.findOne({
+    where: { email: req.body.email },
+  });
+  console.log(loginUser);
+  if (loginUser && (await bcrypt.compare(req.body.password, loginUser.passwordhash))) {
+    const token = jwt.sign({ id: loginUser.id }, process.env.JWT_SECRET);
+    res.status(200).json({
+      message: "Login successful",
+      token: token,
     });
-    console.log(loginUser)
-    if (loginUser && (await bcrypt.compare(req.body.user.password, loginUser.passwordhash))) {
-      const token = jwt.sign({ id: loginUser.id }, process.env.JWT_SECRET);
-      res.status(200).json({
-        message: "Login successful",
-        token: token,
-      });
-    } else {
-      res.status(401).json({
-        message: "Login Failed",
-      });
-    }
-  } //catch (err) {
-//     res.status(500).json({
-//       message: `Error Logging In: ${err}`,
-//     });
-  // }
-);
+  } else {
+    res.status(401).json({
+      message: "Login Failed",
+    });
+  }
+});
 
 /* ******************
  * Delete User Route
  ********************/
 
 userController.delete("/deleteuser", async (req, res) => {
-  console.log(req.user.id)
+  console.log(req.user.id);
   try {
     const removedUser = await UserModel.destroy({
       where: { id: req.user.id },

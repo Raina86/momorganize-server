@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const sequelize = require("../db");
-const { UserModel } = sequelize.import("../models/users");
+const User = sequelize.import("../models/users");
 
 const validate = (req, res, next) => {
   if (req.method === "OPTIONS") {
@@ -8,16 +8,14 @@ const validate = (req, res, next) => {
   } else {
     let sessionToken = req.headers.authorization;
     if (!sessionToken)
-      return res
-        .status(403)
-        .send({ authorized: false, message: "Must provide token." });
+      return res.status(403).send({ authorized: false, message: "Must provide token." });
     else {
       jwt.verify(sessionToken, process.env.JWT_SECRET, (err, decoded) => {
         if (decoded) {
-          UserModel.findOne({ where: { id: decoded.id } }).then(
+          User.findOne({ where: { id: decoded.id } }).then(
             (user) => {
               req.user = user;
-              console.log(req.user);
+              console.log(user);
               next();
             },
             (err) => {
